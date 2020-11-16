@@ -38,6 +38,16 @@ function Add-User($LastName, $FirstName, $Description, $Department, $Phone, $Off
     #New-ADUser -Name $LastName -GivenName $FirstName -Description $Description -AccountPassword $Password -Path $Path
 }
 
+function Add-OU($name){
+    $ou_name = $name
+    #Crée le path selon le nom de l'UO et le dinstinguished name du serveur
+    $path = $ou_name+(Get-ADDomain).DistinguishedName
+    #Vérifie l'absence de l'UO et la crée
+    if ([adsi]::Exists("LDAP://$path")){
+        New-ADOrganizationalUnit -Name $ou_name -Path $path
+    }
+}
+
 Add-User "nom" "prenom" "description" "Direction" "phone" "office"
 Add-User "nom" "prenom" "description" "Techniciens/Technique" "phone" "office"
 
