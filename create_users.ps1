@@ -4,6 +4,8 @@
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
+$Global:Passwords = @()
+
 #Remplace les diacritiques par des caractères ASCII
 function Remove-NonLatinCharacters($String) {
     return $String.Normalize("FormD") -replace '\p{M}', ''
@@ -11,7 +13,6 @@ function Remove-NonLatinCharacters($String) {
 
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
-    $Length
     #Un chiffre
     $Password = (Get-Random 10).ToString();
     #Une lettre majuscule
@@ -48,6 +49,16 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     $OU = $Department.Split("/")
     #Mot de passe de 15 caractères si dans la Direction, ou 7 sinon
     $Password = Get-Password($(If ($OU[0] -eq "Direction") {15} Else {7}))
+    
+    $LastName = $LastName.ToUpper()
+
+    $Global:Passwords += [PSCustomObject]@{
+        Nom = $LastName
+        Prenom = $FirstName
+        MDP = $Password
+    }
+
+    $Password = ConvertTo-SecureString $Password -AsPlainText -Force
 
     $SamAccountName = Get-SamAccountName $FirstName $LastName
 
@@ -66,7 +77,8 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -Path $Path
 }
 
-$Users = Import-Csv -Delimiter ';' -Path $CSVPath -Encoding "UTF8"
+$Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
+
 
 $Users | ForEach-Object {
     $_.PSObject.Properties | ForEach-Object {
@@ -77,4 +89,5 @@ $Users | ForEach-Object {
     Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_"Bureau"
 }
 
-
+$Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
+$Global:Passwords | Out-GridView
