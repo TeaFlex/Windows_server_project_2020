@@ -86,9 +86,11 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 
 #Demande de confirmation avant d'ajouter les utilisateurs via une MessageBox
-Add-Type -AssemblyName PresentationFramework
-$mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
-#Si on clique sur Non
+If (-Not ($Accept.IsPresent)) {
+    Add-Type -AssemblyName PresentationFramework
+    $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
+}
+    #Si on clique sur Non
 If (-Not (($mbres -Eq "Yes") -Or $Accept.IsPresent)) {
     Write-Host "Annulation de l'importation"
     Exit
