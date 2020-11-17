@@ -1,3 +1,7 @@
+﻿param (
+    [Parameter(Mandatory=$True)][string]$CSVPath
+)
+
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
 #Remplace les diacritiques par des caractères ASCII
@@ -20,6 +24,20 @@ function Get-Password($Length) {
     return -join ($Password -split "" | Sort-Object {Get-Random})
 }
 
+function Get-OUPath($OU) {
+
+    $Path = (Get-ADDomain).DistinguishedName
+
+    #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
+    $OU[$OU.Length..0] | ForEach-Object {
+        $Path = "OU=$_,$Path"
+        if (-Not [adsi]::Exists("LDAP://$Path")) {
+            New-ADOrganizationalUnit -Name $_ -Path $Path
+        }
+    }
+
+    return $Path
+}
 
 #Ajoute un utilisateur à l'AD
 function Add-User($LastName, $FirstName, $Description, $Department, $Phone, $Office) {
@@ -28,33 +46,17 @@ function Add-User($LastName, $FirstName, $Description, $Department, $Phone, $Off
     $Password = Get-Password($(If ($OU[0] -eq "Direction") {15} Else {7}))
 
     #Génération du Path
-    $Path = "";
-    $OU[$OU.Length..0] | ForEach-Object {
-        $Path += "OU=$_,"
-    }
-    $Path += "DC=Belgique,DC=lan"
-    $Path
+    $Path = Get-OUPath $OU
     
-    #New-ADUser -Name $LastName -GivenName $FirstName -Description $Description -AccountPassword $Password -Path $Path
+    New-ADUser -AccountPassword $Password `
+        -ChangePasswordAtLogon $True `
+        -Enabled $True `
+        -Name $LastName `
+        -GivenName $FirstName `
+        -Description $Description `
+        -Path $Path
 }
 
-function Add-OU($name){
-    $ou_name = $name
-    #Crée le path selon le nom de l'UO et le dinstinguished name du serveur
-    $path = $ou_name+(Get-ADDomain).DistinguishedName
-    #Vérifie l'absence de l'UO et la crée
-    if ([adsi]::Exists("LDAP://$path")){
-        New-ADOrganizationalUnit -Name $ou_name -Path $path
-    }
-}
+$CSV = Import-Csv -Delimiter ';' -Path $CSVPath -Encoding "UTF8"
+Remove-NonLatinCharacters $CSV[25]."Nom"
 
-Add-User "nom" "prenom" "description" "Direction" "phone" "office"
-Add-User "nom" "prenom" "description" "Techniciens/Technique" "phone" "office"
-
-<#
-Import-Csv -Delimiter ';' -Path c:\data_employees\employees.csv | ForEach-Object {
-    Write-Host($_)
-    #add adding-AD-user command here after creating AD
-
-}
-#>
