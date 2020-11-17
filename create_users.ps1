@@ -89,11 +89,11 @@ $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 If (-Not ($Accept.IsPresent)) {
     Add-Type -AssemblyName PresentationFramework
     $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
-}
     #Si on clique sur Non
-If (-Not (($mbres -Eq "Yes") -Or $Accept.IsPresent)) {
-    Write-Host "Annulation de l'importation"
-    Exit
+    If ($mbres -Eq "No") {
+        Write-Host "Annulation de l'importation"
+        Exit
+    }
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
