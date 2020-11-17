@@ -1,7 +1,8 @@
-﻿Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
-param (
+﻿param (
     [Parameter(Mandatory=$True)][string]$CSVPath
 )
+
+Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
