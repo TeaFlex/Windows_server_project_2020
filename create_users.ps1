@@ -79,7 +79,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -Department $Department `
         -OfficePhone $OfficePhone `
         -Office $Office `
-        -Path $Path `
+        -Path $Path
     Write-Host "Ajout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
 }
 
