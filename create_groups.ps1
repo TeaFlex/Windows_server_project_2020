@@ -1,0 +1,3 @@
+Get-ADOrganizationalUnit | ForEach-Object {
+    
+}
