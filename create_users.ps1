@@ -72,12 +72,12 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -ChangePasswordAtLogon $True `
         -Enabled $True `
         -SamAccountName $SamAccountName `
-        -Name $LastName `
+        -Surname $LastName `
         -GivenName $FirstName `
         -Description $Description `
         -Department $Department `
         -OfficePhone $OfficePhone `
-        -Path $Path
+        -Path $Path `
     >> C:\Logs\create_users.log
 }
 
