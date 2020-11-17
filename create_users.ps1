@@ -98,7 +98,7 @@ if (($mbres -eq "Yes")-or($bypass -eq "Accept")) {
             $_.Value = Remove-NonLatinCharacters $_.Value
         }
         
-        Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_"Bureau"
+        Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
     }
 }
 else
