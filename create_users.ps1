@@ -38,6 +38,7 @@ function Get-OUPath($OU) {
         if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
             New-ADOrganizationalUnit -Name $_ -Path $Path >> C:\Logs\create_users.log
         }
+        $Path = "OU=$_,$Path"
     }
 
     return $Path
