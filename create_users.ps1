@@ -1,6 +1,6 @@
 ﻿param (
     [Parameter(Mandatory=$True)][string]$CSVPath,
-    [Parameter()][string]$Accept
+    [switch]$Accept
 )
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
@@ -88,22 +88,21 @@ $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 #Demande de confirmation avant d'ajouter les utilisateurs via une MessageBox
 Add-Type -AssemblyName PresentationFramework
 $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
-#Si on clique sur Oui
-if (($mbres -eq "Yes")-or($Accept -eq "Yes")) {
-    #Ecrit dans le fichier de log journalier le début de l'exécution du script
-    Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
-    $Users | ForEach-Object {
-        $_.PSObject.Properties | ForEach-Object {
-            #On enlève les diacritiques pour chaque champ
-            $_.Value = Remove-NonLatinCharacters $_.Value
-        }
-        
-        Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
-    }
-}
-else
-{
+#Si on clique sur Non
+If (-Not (($mbres -Eq "Yes") -Or $Accept.IsPresent)) {
     Write-Host "Annulation de l'importation"
+    Exit
+}
+
+#Ecrit dans le fichier de log journalier le début de l'exécution du script
+Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+$Users | ForEach-Object {
+    $_.PSObject.Properties | ForEach-Object {
+        #On enlève les diacritiques pour chaque champ
+        $_.Value = Remove-NonLatinCharacters $_.Value
+    }
+    
+    Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
 }
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
