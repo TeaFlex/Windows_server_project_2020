@@ -28,7 +28,7 @@ function Get-Password($Length) {
     return -join ($Password -split "" | Sort-Object {Get-Random})
 }
 
-function Get-SamAccountName($FirstName, $LastName) {
+function Get-UserPrincipalName($FirstName, $LastName) {
     return ($FirstName.Substring(0, 3) + ($LastName -replace " ", "").Substring(0, 3)).ToLower()
 }
 
@@ -62,8 +62,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     }
 
     $Password = ConvertTo-SecureString $Password -AsPlainText -Force
-
-    $SamAccountName = Get-SamAccountName $FirstName $LastName
+    $UserPrincipalName = Get-UserPrincipalName $LastName $FirstName
 
     #Génération du Path
     $Path = Get-OUPath $OU
@@ -71,19 +70,19 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     New-ADUser -AccountPassword $Password `
         -ChangePasswordAtLogon $True `
         -Enabled $True `
-        -SamAccountName $SamAccountName `
-        -Name $SamAccountName `
+        -Name "$FirstName $LastName" `
+        -UserPrincipalName $UserPrincipalName `
         -Surname $LastName `
         -GivenName $FirstName `
         -Description $Description `
         -Department $Department `
         -OfficePhone $OfficePhone `
+        -Office $Office `
         -Path $Path `
     >> C:\Logs\create_users.log
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
-
 
 $Users | ForEach-Object {
     $_.PSObject.Properties | ForEach-Object {
