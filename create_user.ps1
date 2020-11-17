@@ -24,6 +24,10 @@ function Get-Password($Length) {
     return -join ($Password -split "" | Sort-Object {Get-Random})
 }
 
+function Get-SamAccountName($FirstName, $LastName) {
+    return ($FirstName.Substring(0, 3) + ($LastName -replace " ", "").Substring(0, 3)).ToLower()
+}
+
 function Get-OUPath($OU) {
 
     $Path = (Get-ADDomain).DistinguishedName
@@ -40,10 +44,12 @@ function Get-OUPath($OU) {
 }
 
 #Ajoute un utilisateur à l'AD
-function Add-User($LastName, $FirstName, $Description, $Department, $Phone, $Office) {
+function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone, $Office) {
     $OU = $Department.Split("/")
     #Mot de passe de 15 caractères si dans la Direction, ou 7 sinon
     $Password = Get-Password($(If ($OU[0] -eq "Direction") {15} Else {7}))
+
+    $SamAccountName = Get-SamAccountName $FirstName $LastName
 
     #Génération du Path
     $Path = Get-OUPath $OU
@@ -51,12 +57,24 @@ function Add-User($LastName, $FirstName, $Description, $Department, $Phone, $Off
     New-ADUser -AccountPassword $Password `
         -ChangePasswordAtLogon $True `
         -Enabled $True `
+        -SamAccountName $SamAccountName `
         -Name $LastName `
         -GivenName $FirstName `
         -Description $Description `
+        -Department $Department `
+        -OfficePhone $OfficePhone `
         -Path $Path
 }
 
-$CSV = Import-Csv -Delimiter ';' -Path $CSVPath -Encoding "UTF8"
-Remove-NonLatinCharacters $CSV[25]."Nom"
+$Users = Import-Csv -Delimiter ';' -Path $CSVPath -Encoding "UTF8"
+
+$Users | ForEach-Object {
+    $_.PSObject.Properties | ForEach-Object {
+        #On enlève les diacritiques pour chaque champ
+        $_.Value = Remove-NonLatinCharacters $_.Value
+    }
+    
+    Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_"Bureau"
+}
+
 
