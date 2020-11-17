@@ -39,7 +39,7 @@ function Get-OUPath($OU) {
     $OU[$OU.Length..0] | ForEach-Object {
         if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
             New-ADOrganizationalUnit -Name $_ -Path $Path -ProtectedFromAccidentalDeletion $False
-            Write-Output "Création de l'Unite d'Organisation $_" >> "create_users.log"
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $_" >> "create_users.log"
         }
         $Path = "OU=$_,$Path"
     }
@@ -79,7 +79,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path
-    Write-Output "Ajout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
+    Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
