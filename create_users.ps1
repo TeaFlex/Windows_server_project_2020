@@ -1,4 +1,5 @@
-﻿param (
+﻿Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
+param (
     [Parameter(Mandatory=$True)][string]$CSVPath
 )
 
@@ -35,10 +36,10 @@ function Get-OUPath($OU) {
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
     $OU[$OU.Length..0] | ForEach-Object {
-        $Path = "OU=$_,$Path"
-        if (-Not [adsi]::Exists("LDAP://$Path")) {
-            New-ADOrganizationalUnit -Name $_ -Path $Path
+        if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
+            New-ADOrganizationalUnit -Name $_ -Path $Path >> C:\Logs\create_users.log
         }
+        $Path = "OU=$_,$Path"
     }
 
     return $Path
@@ -75,6 +76,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -Department $Department `
         -OfficePhone $OfficePhone `
         -Path $Path
+    >> C:\Logs\create_users.log
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
@@ -91,3 +93,4 @@ $Users | ForEach-Object {
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
+Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
