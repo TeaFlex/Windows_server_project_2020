@@ -2,7 +2,8 @@
     [Parameter(Mandatory=$True)][string]$CSVPath
 )
 
-Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
+#Ecrit dans le fichier de log journalier le début de l'exécution du script
+Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" >> "$(Get-Date -Format "ddMMyy").log"
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
@@ -94,4 +95,6 @@ $Users | ForEach-Object {
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
-Write-Output "$($(Get-Date -Format "hh:mm:ss"))`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" >> $($(Get-Date -Format "ddMMyy")+".log")
+
+#Ecrit dans le fichier de log journalier le début de l'exécution du script
+Write-Output "$(Get-Date -Format "hh:mm:ss")`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" >> "$(Get-Date -Format "ddMMyy").log"
