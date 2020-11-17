@@ -29,7 +29,9 @@ function Get-Password($Length) {
 }
 
 function Get-UserPrincipalName($FirstName, $LastName) {
-    return ($FirstName.Substring(0, 3) + ($LastName -replace " ", "").Substring(0, 3)).ToLower()
+    $FirstName = $FirstName -replace "[ -]", ""
+    $LastName = $LastName -replace "[ -]", ""
+    return ($FirstName.Substring(0, [math]::Min(3, $FirstName.Length)) + ($LastName -replace " ", "").Substring(0, [math]::Min(3, $LastName.Length))).ToLower()
 }
 
 function Get-OUPath($OU) {
@@ -63,7 +65,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     }
 
     $Password = ConvertTo-SecureString $Password -AsPlainText -Force
-    $UserPrincipalName = Get-UserPrincipalName $LastName $FirstName
+    $UserPrincipalName = Get-UserPrincipalName $FirstName $LastName
 
     #Génération du Path
     $Path = Get-OUPath $OU
@@ -71,7 +73,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     New-ADUser -AccountPassword $Password `
         -ChangePasswordAtLogon $True `
         -Enabled $True `
-        -Name "$FirstName $LastName" `
+        -Name $UserPrincipalName `
         -UserPrincipalName $UserPrincipalName `
         -Surname $LastName `
         -GivenName $FirstName `
