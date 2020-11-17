@@ -89,7 +89,7 @@ $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 Add-Type -AssemblyName PresentationFramework
 $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
 #Si on clique sur Oui
-if (($mbres -eq "Yes")-or($Accept -eq "Confirm")) {
+if (($mbres -eq "Yes")-or($Accept -eq "Yes")) {
     #Ecrit dans le fichier de log journalier le début de l'exécution du script
     Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
     $Users | ForEach-Object {
