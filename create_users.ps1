@@ -72,6 +72,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -ChangePasswordAtLogon $True `
         -Enabled $True `
         -SamAccountName $SamAccountName `
+        -Name $SamAccountName `
         -Surname $LastName `
         -GivenName $FirstName `
         -Description $Description `
