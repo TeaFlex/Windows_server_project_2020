@@ -35,8 +35,7 @@ function Get-OUPath($OU) {
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
     $OU[$OU.Length..0] | ForEach-Object {
-        $Path = "OU=$_,$Path"
-        if (-Not [adsi]::Exists("LDAP://$Path")) {
+        if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
             New-ADOrganizationalUnit -Name $_ -Path $Path >> C:\Logs\create_users.log
         }
     }
