@@ -80,7 +80,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path `
-    Write-Host "Ajout de l'utilisateur $SamAccountName du departement $Department" >> "C:\Logs\create_users.log"
+    Write-Host "Ajout de l'utilisateur $UserPrincipalName du departement $Department" >> "C:\Logs\create_users.log"
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
