@@ -3,7 +3,7 @@
 )
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append  "$(Get-Date -Format "ddMMyy").log"
+Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
@@ -100,4 +100,4 @@ $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Output "$(Get-Date -Format "hh:mm:ss")`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append  "$(Get-Date -Format "ddMMyy").log"
+Write-Output "$(Get-Date -Format "hh:mm:ss")`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
