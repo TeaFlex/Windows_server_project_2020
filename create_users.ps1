@@ -48,11 +48,16 @@ function Get-OUPath($OU) {
             Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $Current" >> Get-LogFile
 
             New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global"
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation du Groupe Global GG_$Current" >> Get-LogFile
 
             New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation du Groupe Local GL_$Current`_R" >> Get-LogFile
             Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
             New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation du Groupe Local GL_$Current`_RW" >> Get-LogFile
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
+
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tGG_$Current est désormais membre de et GL_$Current`_RW et GL_$Current`_RW" >> Get-LogFile
 
             #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
             If ($I -Lt $OU.Length - 1) {
