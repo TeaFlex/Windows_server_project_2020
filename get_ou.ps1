@@ -9,8 +9,8 @@ function Write-LogFile($Content,$Type){
     }
     Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "log_GetOU.log"
 }
-$Test = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"
-if (-not $Test) {
+$Target = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"
+if (-not $Target) {
     Write-Host ("L'Unite d'Organisation $OU n'existe pas")
     Exit
 }
@@ -18,6 +18,10 @@ Write-LogFile "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "
 
 #Récupère tous les utilisateurs de cette UO
 Write-LogFile "Recherche des utilisateurs de l'Unite d'organisation $OU"
-Get-ADUser -Filter * -SearchBase ($Test) #| Export-Csv -Delimiter ";" -Path "RH_Users.csv"
+$Result=Get-ADUser -Filter * -SearchBase ($Target)
+
+#Crée le fichier de listing de l'UO et affiche dans une fenêtre
+$Result | Export-Csv -Delimiter ";" -Path "userlist_$($OU -replace ' ','').csv"
+$Result | Out-GridView
 
 Write-LogFile "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
