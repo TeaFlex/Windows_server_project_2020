@@ -16,10 +16,7 @@ function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
         Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
     }
-    else 
-    {
-        Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "create_users.log"
-    }
+    Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "create_users.log"
 }
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
