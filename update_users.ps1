@@ -8,7 +8,7 @@ function Get-UserPrincipalName($FirstName, $LastName) {
     $LastName = ($LastName -replace "[ -]", "").ToLower()
 
     #Si prénom.nom fait moins de 20 caractères, on prend ça
-    If ($FirstName.Length + $LastName.Length - Lt 20) {
+    If ($FirstName.Length + $LastName.Length -Lt 20) {
         Return "$FirstName.$LastName"
     }
     #Sinon, si [première lettre du prénom].nom fait moins de 20 caractères, on prend ça
@@ -27,7 +27,7 @@ Get-ADUser -Filter * | ForEach-Object {
     If (-Not [string]::IsNullOrEmpty($_.UserPrincipalName)) { 
         $NewUPN = "$($_.GivenName).$($_.Surname)".ToLower() -replace "[ -]", ""
 
-        If ([bool] (Get-ADUser -Filter "Name -Eq $($_.UserPrincipalName)")) {
+        If ([bool] (Get-ADUser -Filter 'Name -Eq "$($_.UserPrincipalName)"')) {
             $Global:ProblematicUsers += [PSCustomObject]@{
                 Nom = $LastName
                 Prenom = $FirstName

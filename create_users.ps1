@@ -99,7 +99,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     $LastName = $LastName.ToUpper()
     $UserPrincipalName = Get-UserPrincipalName $FirstName $LastName
 
-    If ([bool] (Get-ADUser -Filter "Name -Eq $UserPrincipalName")) {
+    If ([bool] (Get-ADUser -Filter 'Name -Eq "$($_.UserPrincipalName)"')) {
         $Global:ProblematicUsers += [PSCustomObject]@{
             Nom = $LastName
             Prenom = $FirstName
