@@ -26,23 +26,23 @@ function Get-UserPrincipalName($FirstName, $LastName) {
 Get-ADUser -Filter * | ForEach-Object {
     If (-Not [string]::IsNullOrEmpty($_.UserPrincipalName)) { 
         $NewUPN = Get-UserPrincipalName $_.GivenName $_.Surname
-
-        If ([bool] (Get-ADUser -Filter 'Name -Eq "$($_.UserPrincipalName)"')) {
-            $Global:ProblematicUsers += [PSCustomObject]@{
-                Nom = $LastName
-                Prenom = $FirstName
-                Raison = "UPN Existe déjà"
+        If ($NewUPN) {
+            If ([bool] (Get-ADUser -Filter 'Name -Eq "$($_.UserPrincipalName)"')) {
+                $Global:ProblematicUsers += [PSCustomObject]@{
+                    Nom = $LastName
+                    Prenom = $FirstName
+                    Raison = "UPN Existe déjà"
+                }
             }
-            Return
+
+            Set-ADUser -Identity $_.UserPrincipalName `
+                -UserPrincipalName "$NewUPN@$Suffix" `
+                -SamAccountName $NewUPN `
+                -ChangePasswordAtLogon $False `
+                -DisplayName "$($_.GivenName) $($_.Surname)"
+
+            Rename-ADObject -Identity $_.DistinguishedName -NewName "$($_.GivenName) $($_.Surname)"
         }
-
-        Set-ADUser -Identity $_.UserPrincipalName `
-            -UserPrincipalName "$NewUPN@$Suffix" `
-            -SamAccountName $NewUPN `
-            -ChangePasswordAtLogon $False `
-            -DisplayName "$($_.GivenName) $($_.Surname)"
-
-        Rename-ADObject -Identity $_.DistinguishedName -NewName "$($_.GivenName) $($_.Surname)"
     }
 }
 
