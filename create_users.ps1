@@ -115,7 +115,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
 
     #On ajoute l'utilisateur au GG de son OU
-    New-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
+    Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
