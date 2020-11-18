@@ -11,12 +11,12 @@ $Global:Passwords = @()
 function Remove-NonLatinCharacters($String) {
     return $String.Normalize("FormD") -replace '\p{M}', ''
 }
-#Récupère le nom du fichier de log
+#Ecrit des fichiers de log
 function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
         Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
     }
-    Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "create_users.log"
+    Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "log_CreateUsers.log"
 }
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
@@ -61,7 +61,7 @@ function Get-OUPath($OU) {
             Write-LogFile ("Création du Groupe Local GL_$Current`_RW")
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
 
-            Write-LogFile ("GG_$Current est désormais membre de et GL_$Current`_RW et GL_$Current`_RW")
+            Write-LogFile ("GG_$Current est désormais membre de et GL_$Current`_R et GL_$Current`_RW")
 
             #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
             If ($I -Lt $OU.Length - 1) {
@@ -120,7 +120,7 @@ If (-Not ($Accept.IsPresent)) {
     $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
     #Si on clique sur Non
     If ($mbres -Eq "No") {
-        Write-LogFile ("Annulation de l'importation")
+        Write-Host ("Annulation de l'importation")
         Exit
     }
 }
