@@ -39,7 +39,7 @@ function Get-UserPrincipalName($FirstName, $LastName) {
     $LastName = ($LastName -replace "[ -]", "").ToLower()
 
     #Si prénom.nom fait moins de 20 caractères, on prend ça
-    If ($FirstName.Length + $LastName.Length - Lt 20) {
+    If ($FirstName.Length + $LastName.Length -Lt 20) {
         Return "$FirstName.$LastName"
     }
     #Sinon, si [première lettre du prénom].nom fait moins de 20 caractères, on prend ça
