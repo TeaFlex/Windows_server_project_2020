@@ -41,9 +41,9 @@ Get-ADUser -Filter * | ForEach-Object {
             -SamAccountName $NewUPN `
             -ChangePasswordAtLogon $False `
             -DisplayName "$($_.GivenName) $($_.Surname)"
-    }
 
-    Rename-ADObject -Identity $_.DistinguishedName -NewName "$($_.GivenName) $($_.Surname)"
+        Rename-ADObject -Identity $_.DistinguishedName -NewName "$($_.GivenName) $($_.Surname)"
+    }
 }
 
 $Global:ProblematicUsers | Export-Csv -Delimiter ";" -Path "problematic_users_update.csv"
