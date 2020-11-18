@@ -11,7 +11,13 @@ $Global:Passwords = @()
 function Remove-NonLatinCharacters($String) {
     return $String.Normalize("FormD") -replace '\p{M}', ''
 }
-
+#Récupère le nom du fichier de log
+function Write-LogFile($Content,$Type){
+    if ($Type -eq "Daily"){
+        Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+    }
+    Write-Output "$(Get-Date -Format "hh:mm:ss")`t$Content" >> "create_users.log"
+}
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
     #Un chiffre
@@ -42,14 +48,20 @@ function Get-OUPath($OU) {
         $Current = $OU[$I]
         if (-Not [adsi]::Exists("LDAP://OU=$Current,$Path")) {
             New-ADOrganizationalUnit -Name $Current -Path $Path -ProtectedFromAccidentalDeletion $False
-            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $Current" >> "create_users.log"
+            Write-LogFile ("Création de l'Unite d'Organisation $Current")
 
             New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global"
+            Write-LogFile ("Création du Groupe Global GG_$Current")
 
             New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Write-LogFile ("Création du Groupe Local GL_$Current`_R")
+
             Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
             New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Write-LogFile ("Création du Groupe Local GL_$Current`_RW")
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
+
+            Write-LogFile ("GG_$Current est désormais membre de et GL_$Current`_RW et GL_$Current`_RW")
 
             #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
             If ($I -Lt $OU.Length - 1) {
@@ -95,7 +107,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path
-    Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
+    Write-LogFile ("Ajout de l'utilisateur $UserPrincipalName du departement $Department")
 
     #On ajoute l'utilisateur au GG de son OU
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
@@ -109,13 +121,13 @@ If (-Not ($Accept.IsPresent)) {
     $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
     #Si on clique sur Non
     If ($mbres -Eq "No") {
-        Write-Host "Annulation de l'importation"
+        Write-LogFile ("Annulation de l'importation")
         Exit
     }
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+Write-LogFile ("Debut de l'execution du script $($MyInvocation.MyCommand.Name)","Daily")
 
 $Users | ForEach-Object {
     $_.PSObject.Properties | ForEach-Object {
@@ -130,4 +142,4 @@ $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-Output "$(Get-Date -Format "hh:mm:ss")`tFin de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+Write-LogFile ("Fin de l'execution du script $($MyInvocation.MyCommand.Name)","Daily")
