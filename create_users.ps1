@@ -11,7 +11,10 @@ $Global:Passwords = @()
 function Remove-NonLatinCharacters($String) {
     return $String.Normalize("FormD") -replace '\p{M}', ''
 }
-
+#Récupère le nom du fichier de log
+function Get-LogFile{
+    return "create_users.log"
+}
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
     #Un chiffre
@@ -42,7 +45,7 @@ function Get-OUPath($OU) {
         $Current = $OU[$I]
         if (-Not [adsi]::Exists("LDAP://OU=$Current,$Path")) {
             New-ADOrganizationalUnit -Name $Current -Path $Path -ProtectedFromAccidentalDeletion $False
-            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $Current" >> "create_users.log"
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $Current" >> Get-LogFile
 
             New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global"
 
@@ -95,7 +98,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path
-    Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
+    Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> Get-LogFile
 
     #On ajoute l'utilisateur au GG de son OU
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
