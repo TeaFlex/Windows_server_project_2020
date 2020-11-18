@@ -129,13 +129,23 @@ If (-Not ($Accept.IsPresent)) {
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
 Write-LogFile ("Debut de l'execution du script $($MyInvocation.MyCommand.Name)","Daily")
 
+$Max = $Users.Length
+$Progress = 0
+
 $Users | ForEach-Object {
     $_.PSObject.Properties | ForEach-Object {
         #On enlève les diacritiques pour chaque champ
         $_.Value = Remove-NonLatinCharacters $_.Value
     }
-    
-    Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
+    Try {
+        Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
+    }
+    Catch {
+        Write-LogFile("Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)","Daily")
+    }
+    $Progress++
+    $display = [math]::floor(($Progress/$Max)*100)
+    Write-Progress -Activity "Execution du script en cours..." -Status "$display% Complété: " -PercentComplete $display; 
 }
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
