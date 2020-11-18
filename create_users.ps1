@@ -55,8 +55,8 @@ function Get-OUPath($OU) {
 
             New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
             Write-LogFile ("Création du Groupe Local GL_$Current`_R")
-
             Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
+
             New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
             Write-LogFile ("Création du Groupe Local GL_$Current`_RW")
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
@@ -96,7 +96,6 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     $Path = Get-OUPath $OU
     
     New-ADUser -AccountPassword $Password `
-        -ChangePasswordAtLogon $True `
         -Enabled $True `
         -Name $UserPrincipalName `
         -UserPrincipalName $UserPrincipalName `
