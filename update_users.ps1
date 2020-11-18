@@ -25,7 +25,7 @@ function Get-UserPrincipalName($FirstName, $LastName) {
 
 Get-ADUser -Filter * | ForEach-Object {
     If (-Not [string]::IsNullOrEmpty($_.UserPrincipalName)) { 
-        $NewUPN = "$($_.GivenName).$($_.Surname)".ToLower() -replace "[ -]", ""
+        $NewUPN = Get-UserPrincipalName $_.GivenName $_.Surname
 
         If ([bool] (Get-ADUser -Filter 'Name -Eq "$($_.UserPrincipalName)"')) {
             $Global:ProblematicUsers += [PSCustomObject]@{
