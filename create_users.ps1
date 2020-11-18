@@ -37,12 +37,43 @@ function Get-OUPath($OU) {
     $Path = (Get-ADDomain).DistinguishedName
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
+
+    <#
     $OU[$OU.Length..0] | ForEach-Object {
         if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
             New-ADOrganizationalUnit -Name $_ -Path $Path -ProtectedFromAccidentalDeletion $False
             Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $_" >> "create_users.log"
+
+            New-ADGroup -Name "GG_$_" -Description "Groupe Global pour l'OU $_" -GroupCategory "Security" -GroupScope "Global"
+
+            New-ADGroup -Name "GL_$_`_R" -Description "Groupe Local R pour l'OU $_" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Add-ADGroupMember -Identity "GL_$_`_R" -Members "GG_$_"
+            New-ADGroup -Name "GL_$_`_RW" -Description "Groupe Local RW pour l'OU $_" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Add-ADGroupMember -Identity "GL_$_`_RW" -Members "GG_$_"
         }
         $Path = "OU=$_,$Path"
+    }
+    #>
+
+    For ($I = $OU.Length - 1; $I -Ge 0; $I--) {
+        $Current = $OU[$I]
+        if (-Not [adsi]::Exists("LDAP://OU=$Current,$Path")) {
+            New-ADOrganizationalUnit -Name $Current -Path $Path -ProtectedFromAccidentalDeletion $False
+            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $Current" >> "create_users.log"
+
+            New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global"
+
+            New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
+            New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
+
+            #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
+            If ($I -Lt $OU.Length - 1) {
+                Add-ADGroupMember -Identity "GG_$($OU[$I + 1])" -Members "GG_$Current"
+            }
+        }
+        $Path = "OU=$Current,$Path"
     }
 
     return $Path
@@ -52,18 +83,19 @@ function Get-OUPath($OU) {
 function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone, $Office) {
     $OU = $Department.Split("/")
     #Mot de passe de 15 caractères si dans la Direction, ou 7 sinon
-    $Password = Get-Password($(If ($OU[0] -eq "Direction") {15} Else {7}))
+    $Password = Get-Password($(If ($OU[0] -Eq "Direction") {15} Else {7}))
     
     $LastName = $LastName.ToUpper()
+    $UserPrincipalName = Get-UserPrincipalName $FirstName $LastName
 
     $Global:Passwords += [PSCustomObject]@{
         Nom = $LastName
         Prenom = $FirstName
+        Login = $UserPrincipalName
         MDP = $Password
     }
 
     $Password = ConvertTo-SecureString $Password -AsPlainText -Force
-    $UserPrincipalName = Get-UserPrincipalName $FirstName $LastName
 
     #Génération du Path
     $Path = Get-OUPath $OU
@@ -81,6 +113,9 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -Office $Office `
         -Path $Path
     Write-Output "$(Get-Date -Format "hh:mm:ss")`tAjout de l'utilisateur $UserPrincipalName du departement $Department" >> "create_users.log"
+
+    #On ajoute l'utilisateur au GG de son OU
+    New-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
 }
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
@@ -98,6 +133,7 @@ If (-Not ($Accept.IsPresent)) {
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
 Write-Output "$(Get-Date -Format "hh:mm:ss")`tDebut de l'execution du script $($MyInvocation.MyCommand.Name)" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+
 $Users | ForEach-Object {
     $_.PSObject.Properties | ForEach-Object {
         #On enlève les diacritiques pour chaque champ
