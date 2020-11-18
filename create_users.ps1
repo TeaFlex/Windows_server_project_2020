@@ -123,7 +123,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     New-ADUser -AccountPassword $Password `
         -Enabled $True `
         -Name $UserPrincipalName `
-        -DisplayName "$($_.GivenName) $($_.Surname)"
+        -DisplayName "$($_.GivenName) $($_.Surname)" `
         -UserPrincipalName "$UserPrincipalName@$((Get-ADDomain).DistinguishedName)" `
         -Surname $LastName `
         -GivenName $FirstName `
