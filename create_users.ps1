@@ -6,10 +6,11 @@
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
 $Global:Passwords = @()
+$Global:ProblematicUsers = @()
 
 #Remplace les diacritiques par des caractères ASCII
 function Remove-NonLatinCharacters($String) {
-    return $String.Normalize("FormD") -replace '\p{M}', ''
+    Return $String.Normalize("FormD") -replace '\p{M}', ''
 }
 #Ecrit des fichiers de log
 function Write-LogFile($Content,$Type){
@@ -29,13 +30,28 @@ function Get-Password($Length) {
     #Le reste en lettres minuscules
     $Password += -join ((97..122) | Get-Random -Count ($Length - 3) | % {[char]$_})
     #Résultat mélangé
-    return -join ($Password -split "" | Sort-Object {Get-Random})
+    Return -join ($Password -split "" | Sort-Object {Get-Random})
 }
 
+#Génère l'UPN de l'utilisateur sur base de son nom et prénom
 function Get-UserPrincipalName($FirstName, $LastName) {
-    $FirstName = $FirstName -replace "[ -]", ""
-    $LastName = $LastName -replace "[ -]", ""
-    return ($FirstName.Substring(0, [math]::Min(3, $FirstName.Length)) + ($LastName -replace " ", "").Substring(0, [math]::Min(3, $LastName.Length))).ToLower()
+    $FirstName = ($FirstName -replace "[ -]", "").ToLower()
+    $LastName = ($LastName -replace "[ -]", "").ToLower()
+
+    #Si prénom.nom fait moins de 20 caractères, on prend ça
+    If ($FirstName.Length + $LastName.Length - Lt 20) {
+        Return "$FirstName.$LastName"
+    }
+    #Sinon, si [première lettre du prénom].nom fait moins de 20 caractères, on prend ça
+    If ($LastName.Length -Lt 19) {
+        Return "$($FirstName[0]).$LastName"
+    }
+    #Sinon, explosion
+    $Global:ProblematicUsers += [PSCustomObject]@{
+        Nom = $LastName
+        Prenom = $FirstName
+        Raison = "Nom trop long"
+    }
 }
 
 function Get-OUPath($OU) {
@@ -71,7 +87,7 @@ function Get-OUPath($OU) {
         $Path = "OU=$Current,$Path"
     }
 
-    return $Path
+    Return $Path
 }
 
 #Ajoute un utilisateur à l'AD
@@ -82,6 +98,15 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     
     $LastName = $LastName.ToUpper()
     $UserPrincipalName = Get-UserPrincipalName $FirstName $LastName
+
+    If ([bool] (Get-ADUser -Filter "Name -Eq $UserPrincipalName")) {
+        $Global:ProblematicUsers += [PSCustomObject]@{
+            Nom = $LastName
+            Prenom = $FirstName
+            Raison = "UPN Existe déjà"
+        }
+        Return
+    }
 
     $Global:Passwords += [PSCustomObject]@{
         Nom = $LastName
@@ -98,7 +123,8 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     New-ADUser -AccountPassword $Password `
         -Enabled $True `
         -Name $UserPrincipalName `
-        -UserPrincipalName $UserPrincipalName `
+        -DisplayName "$($_.GivenName) $($_.Surname)"
+        -UserPrincipalName "$UserPrincipalName@$((Get-ADDomain).DistinguishedName)" `
         -Surname $LastName `
         -GivenName $FirstName `
         -Description $Description `
@@ -143,12 +169,14 @@ $Users | ForEach-Object {
         Write-LogFile "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)" "Daily"
     }
     $Progress++
-    $display = [math]::floor(($Progress/$Max)*100)
-    Write-Progress -Activity "Execution du script en cours..." -Status "$display% Complété: " -PercentComplete $display; 
+    $Display = [math]::floor(($Progress/$Max)*100)
+    Write-Progress -Activity "Execution du script en cours..." -Status "$Display% Complété: " -PercentComplete $Display; 
 }
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
+
+$Global:ProblematicUsers | Export-Csv -Delimiter ";" -Path "problematic_users.csv"
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
 Write-LogFile "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
