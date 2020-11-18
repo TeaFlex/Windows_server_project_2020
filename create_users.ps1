@@ -57,6 +57,7 @@ function Get-UserPrincipalName($FirstName, $LastName) {
 function Get-OUPath($OU) {
 
     $Path = (Get-ADDomain).DistinguishedName
+    $GroupPath = "CN=Groupes,$Path"
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
 
@@ -66,18 +67,27 @@ function Get-OUPath($OU) {
             New-ADOrganizationalUnit -Name $Current -Path $Path -ProtectedFromAccidentalDeletion $False
             Write-LogFile ("Création de l'Unite d'Organisation $Current")
 
-            New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global"
+            New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global" -Path $GroupPath
             Write-LogFile ("Création du Groupe Global GG_$Current")
 
-            New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
             Write-LogFile ("Création du Groupe Local GL_$Current`_R")
             Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
 
-            New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal"
+            New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
             Write-LogFile ("Création du Groupe Local GL_$Current`_RW")
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
 
             Write-LogFile ("GG_$Current est désormais membre de et GL_$Current`_R et GL_$Current`_RW")
+
+            New-ADGroup -Name "GG_$Current`_Responsable" -Description "Groupe Global pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "Global" -Path $GroupPath
+            Write-LogFile ("Création du Groupe Global GG_$Current`_Responsable")
+
+            New-ADGroup -Name "GL_$Current`_Responsable_R" -Description "Groupe Local R pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
+            Write-LogFile ("Création du Groupe Local GL_$Current`_Responsable_R")
+
+            New-ADGroup -Name "GL_$Current`_Responsable_RW" -Description "Groupe Local RW pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
+            Write-LogFile ("Création du Groupe Local GL_$Current`_Responsable_RW")
 
             #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
             If ($I -Lt $OU.Length - 1) {
@@ -137,6 +147,8 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     #On ajoute l'utilisateur au GG de son OU
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
 }
+
+New-ADObject -Name "Groupes" -Type "Container" -Path (Get-ADDomain).DistinguishedName
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 
