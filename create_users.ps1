@@ -38,23 +38,6 @@ function Get-OUPath($OU) {
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
 
-    <#
-    $OU[$OU.Length..0] | ForEach-Object {
-        if (-Not [adsi]::Exists("LDAP://OU=$_,$Path")) {
-            New-ADOrganizationalUnit -Name $_ -Path $Path -ProtectedFromAccidentalDeletion $False
-            Write-Output "$(Get-Date -Format "hh:mm:ss")`tCréation de l'Unite d'Organisation $_" >> "create_users.log"
-
-            New-ADGroup -Name "GG_$_" -Description "Groupe Global pour l'OU $_" -GroupCategory "Security" -GroupScope "Global"
-
-            New-ADGroup -Name "GL_$_`_R" -Description "Groupe Local R pour l'OU $_" -GroupCategory "Security" -GroupScope "DomainLocal"
-            Add-ADGroupMember -Identity "GL_$_`_R" -Members "GG_$_"
-            New-ADGroup -Name "GL_$_`_RW" -Description "Groupe Local RW pour l'OU $_" -GroupCategory "Security" -GroupScope "DomainLocal"
-            Add-ADGroupMember -Identity "GL_$_`_RW" -Members "GG_$_"
-        }
-        $Path = "OU=$_,$Path"
-    }
-    #>
-
     For ($I = $OU.Length - 1; $I -Ge 0; $I--) {
         $Current = $OU[$I]
         if (-Not [adsi]::Exists("LDAP://OU=$Current,$Path")) {
