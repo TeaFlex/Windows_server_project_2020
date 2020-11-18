@@ -148,7 +148,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
 }
 
-New-ADObject -Name "Groupes" -Type "Container" -Path (Get-ADDomain).DistinguishedName
+New-ADOrganizationalUnit -Name "Groupes" -Path (Get-ADDomain).DistinguishedName -ProtectedFromAccidentalDeletion $False
 
 $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 
