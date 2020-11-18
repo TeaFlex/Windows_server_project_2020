@@ -127,7 +127,7 @@ If (-Not ($Accept.IsPresent)) {
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-LogFile ("Debut de l'execution du script $($MyInvocation.MyCommand.Name)","Daily")
+Write-LogFile "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
 
 $Max = $Users.Length
 $Progress = 0
@@ -141,7 +141,7 @@ $Users | ForEach-Object {
         Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
     }
     Catch {
-        Write-LogFile("Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)","Daily")
+        Write-LogFile "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)" "Daily"
     }
     $Progress++
     $display = [math]::floor(($Progress/$Max)*100)
@@ -152,4 +152,4 @@ $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
 $Global:Passwords | Out-GridView
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-LogFile ("Fin de l'execution du script $($MyInvocation.MyCommand.Name)","Daily")
+Write-LogFile "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
