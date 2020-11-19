@@ -45,13 +45,13 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     $Responsables = Get-ADGroup -Filter "Name -Eq `"GG_$Name`_Responsable`"" | Get-ADGroupMember | Get-ADUser | ForEach-Object { "$($_.GivenName) $($_.Surname)" } -join ", "
     
     $Action80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 80%." -RunLimitInterval 180
-    $Treshold80 = New-FsrmQuotaTreshold -Percentage 80 -Action $Action80
+    $Threshold80 = New-FsrmQuotaThreshold -Percentage 80 -Action $Action80
     $Action90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
-    $Treshold90 = New-FsrmQuotaTreshold -Percentage 90 -Action $Action90
+    $Threshold90 = New-FsrmQuotaThreshold -Percentage 90 -Action $Action90
     $Action100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
-    $Treshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $Action100
-    $Tresholds = $Treshold80, $Treshold90, $Treshold100
-    New-FsrmQuotaTemplate "Quota $Name" -Size 500MB -Treshold $Tresholds
+    $Threshold100 = New-FsrmQuotaThreshold -Percentage 100 -Action $Action100
+    $Thresholds = $Threshold80, $Threshold90, $Threshold100
+    New-FsrmQuotaTemplate "Quota $Name" -Size 500MB -Threshold $Thresholds
     New-FsrmQuota -Path $DirPath -Template "Quota $Name" 
 
 
@@ -67,13 +67,13 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
 
 
             $InnerAction80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 80%." -RunLimitInterval 180
-            $InnerTreshold80 = New-FsrmQuotaTreshold -Percentage 80 -Action $InnerAction80
+            $InnerThreshold80 = New-FsrmQuotaThreshold -Percentage 80 -Action $InnerAction80
             $InnerAction90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
-            $InnerTreshold90 = New-FsrmQuotaTreshold -Percentage 90 -Action $InnerAction90
+            $InnerThreshold90 = New-FsrmQuotaThreshold -Percentage 90 -Action $InnerAction90
             $InnerAction100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
-            $InnerTreshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $InnerAction100
-            $InnerTresholds = $InnerTreshold80, $InnerTreshold90, $InnerTreshold100
-            New-FsrmQuotaTemplate "Quota $InnerName" -Size 100MB -Treshold $InnerTresholds
+            $InnerThreshold100 = New-FsrmQuotaThreshold -Percentage 100 -Action $InnerAction100
+            $InnerThresholds = $InnerThreshold80, $InnerThreshold90, $InnerThreshold100
+            New-FsrmQuotaTemplate "Quota $InnerName" -Size 100MB -Threshold $InnerThresholds
             New-FsrmQuota -Path "$DirPath\$InnerName" -Template "Quota $InnerName" 
     }
 }
