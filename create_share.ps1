@@ -18,9 +18,9 @@ Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)'
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     $DirPath = "C:\Share\$Name"
 
-    $GroupSID = (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID
-    Add-FolderPermission $GroupSID $DirPath "Read" "Allow"
-    
+    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID $DirPath "Read" "Allow"
+    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_Responsable_RW`"").SID $DirPath "Read,Modify" "Allow"
+
     $InnerOUs = Get-ADOrganizationalUnit -Filter * -SearchBase "OU=$($_.Name),$DomainPath"  -SearchScope 1
 
     $InnerOUs | ForEach-Object {
