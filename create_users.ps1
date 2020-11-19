@@ -1,4 +1,4 @@
-﻿param (
+param (
     [Parameter(Mandatory=$True)][string]$CSVPath,
     [switch]$Accept
 )
@@ -57,7 +57,7 @@ function Get-UserPrincipalName($FirstName, $LastName) {
 function Get-OUPath($OU) {
 
     $Path = (Get-ADDomain).DistinguishedName
-    $GroupPath = "CN=Groupes,$Path"
+    $GroupPath = "OU=Groupes,$Path"
 
     #Pour chaque niveau d'OU, on le crée s'il n'existe pas encore
 
