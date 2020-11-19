@@ -23,7 +23,7 @@ New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
 
 $DomainPath = (Get-ADDomain).DistinguishedName
 
-Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)"' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
+Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne "Groupes")' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
     $Name = $_.Name
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     Write-LogFile "Creation du dossier $Name"
@@ -41,7 +41,7 @@ Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)"
 
         New-Item -Path $DirPath -Name $InnerName -ItemType "Directory"
         Write-LogFile "Creation du dossier $Name/$InnerName"
-        Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$InnerName`_RW`"").SID "$DirPath\$Name" "Read,Modify" "Allow"
+        Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$InnerName`_RW`"").SID "$DirPath\$InnerName" "Read,Modify" "Allow"
         
     }
 }
