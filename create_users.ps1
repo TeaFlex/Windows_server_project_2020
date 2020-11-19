@@ -13,11 +13,15 @@ function Remove-NonLatinCharacters($String) {
     Return $String.Normalize("FormD") -replace '\p{M}', ''
 }
 #Ecrit des fichiers de log
+$LogsDirectory="C:\AdministrationLogs\"
+if(!(Test-Path -Path $LogsDirectory )){
+    New-Item -ItemType directory -Path $LogsDirectory
+}
 function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
-        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append "log_$(Get-Date -Format "ddMMyy").log"
+        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append $LogsDirectory"daily_$(Get-Date -Format "ddMMyy").log"
     }
-    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> "log_CreateUsers.log"
+    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> $LogsDirectory"script_CreateUsers.log"
 }
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {

@@ -3,11 +3,15 @@ param (
 )
 
 #Ecrit des fichiers de log
+$LogsDirectory="C:\AdministrationLogs\"
+if(!(Test-Path -Path $LogsDirectory )){
+    New-Item -ItemType directory -Path $LogsDirectory
+}
 function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
-        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append "log_$(Get-Date -Format "ddMMyy").log"
+        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append $LogsDirectory"daily_$(Get-Date -Format "ddMMyy").log"
     }
-    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> "log_GetOU.log"
+    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> $LogsDirectory"script_GetOU.log"
 }
 $Target = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"
 if (-not $Target) {
