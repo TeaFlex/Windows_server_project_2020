@@ -42,7 +42,7 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     Add-FolderPermission $DirectionRWSID $DirPath "Read,Modify" "Allow"
 
 
-    $Responsables = Get-ADGroup -Filter "Name -Eq `"GG_$Name`_Responsable`"" | Get-ADGroupMember | Get-ADUser | ForEach-Object { "$($_.GivenName) $($_.Surname)" } -join ", "
+    $Responsables = (Get-ADGroup -Filter "Name -Eq `"GG_$Name`_Responsable`"" | Get-ADGroupMember | Get-ADUser | ForEach-Object { "$($_.GivenName) $($_.Surname)" }) -join ", "
     
     $Action80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 80%." -RunLimitInterval 180
     $Threshold80 = New-FsrmQuotaThreshold -Percentage 80 -Action $Action80
