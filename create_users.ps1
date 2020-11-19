@@ -3,10 +3,13 @@
     [switch]$Accept
 )
 
-#Ecrit des fichiers de log
-$LogsDirectory="C:\AdministrationLogs\"
-if(!(Test-Path -Path $LogsDirectory )){
-    New-Item -ItemType directory -Path $LogsDirectory
+#Vérifie l'enregistrement de la source de log
+if (-not [system.diagnostics.eventlog]::SourceExists("CreateUsers")){
+    [system.diagnostics.EventLog]::CreateEventSource("CreateUsers", "Application")
+}
+function Write-Log($Content){
+    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content"
+    Write-EventLog -LogName Application -Source "CreateUsers" -Message $Content -EventId 666
 }
 
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
@@ -18,12 +21,7 @@ $Global:ProblematicUsers = @()
 function Remove-NonLatinCharacters($String) {
     Return $String.Normalize("FormD") -replace '\p{M}', ''
 }
-function Write-LogFile($Content,$Type){
-    if ($Type -eq "Daily"){
-        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append $LogsDirectory"daily_$(Get-Date -Format "ddMMyy").log"
-    }
-    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> $LogsDirectory"script_CreateUsers.log"
-}
+
 #Génère un mot de passe aléatoire
 function Get-Password($Length) {
     #Un chiffre
@@ -70,29 +68,29 @@ function Get-OUPath($OU) {
         $Current = $OU[$I]
         if (-Not [adsi]::Exists("LDAP://OU=$Current,$Path")) {
             New-ADOrganizationalUnit -Name $Current -Path $Path -ProtectedFromAccidentalDeletion $False
-            Write-LogFile ("Création de l'Unite d'Organisation $Current")
+            Write-Log ("Création de l'Unite d'Organisation $Current")
 
             New-ADGroup -Name "GG_$Current" -Description "Groupe Global pour l'OU $Current" -GroupCategory "Security" -GroupScope "Global" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Global GG_$Current")
+            Write-Log ("Création du Groupe Global GG_$Current")
 
             New-ADGroup -Name "GL_$Current`_R" -Description "Groupe Local R pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Local GL_$Current`_R")
+            Write-Log ("Création du Groupe Local GL_$Current`_R")
             Add-ADGroupMember -Identity "GL_$Current`_R" -Members "GG_$Current"
 
             New-ADGroup -Name "GL_$Current`_RW" -Description "Groupe Local RW pour l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Local GL_$Current`_RW")
+            Write-Log ("Création du Groupe Local GL_$Current`_RW")
             Add-ADGroupMember -Identity "GL_$Current`_RW" -Members "GG_$Current"
 
-            Write-LogFile ("GG_$Current est désormais membre de et GL_$Current`_R et GL_$Current`_RW")
+            Write-Log ("GG_$Current est désormais membre de et GL_$Current`_R et GL_$Current`_RW")
 
             New-ADGroup -Name "GG_$Current`_Responsable" -Description "Groupe Global pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "Global" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Global GG_$Current`_Responsable")
+            Write-Log ("Création du Groupe Global GG_$Current`_Responsable")
 
             New-ADGroup -Name "GL_$Current`_Responsable_R" -Description "Groupe Local R pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Local GL_$Current`_Responsable_R")
+            Write-Log ("Création du Groupe Local GL_$Current`_Responsable_R")
 
             New-ADGroup -Name "GL_$Current`_Responsable_RW" -Description "Groupe Local RW pour les responsables de l'OU $Current" -GroupCategory "Security" -GroupScope "DomainLocal" -Path $GroupPath
-            Write-LogFile ("Création du Groupe Local GL_$Current`_Responsable_RW")
+            Write-Log ("Création du Groupe Local GL_$Current`_Responsable_RW")
 
             #Si l'OU est dans une autre OU, on met son GG dans le GG de l'OU parente
             If ($I -Lt $OU.Length - 1) {
@@ -147,7 +145,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path
-    Write-LogFile ("Ajout de l'utilisateur $UserPrincipalName du departement $Department")
+    Write-Log ("Ajout de l'utilisateur $UserPrincipalName du departement $Department")
 
     #On ajoute l'utilisateur au GG de son OU
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
@@ -169,7 +167,7 @@ If (-Not ($Accept.IsPresent)) {
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-LogFile "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
 
 $Max = $Users.Length
 $Progress = 0
@@ -183,7 +181,7 @@ $Users | ForEach-Object {
         Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
     }
     Catch {
-        Write-LogFile "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)" "Daily"
+        Write-Log "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)" "Daily"
     }
     $Progress++
     $Display = [math]::floor(($Progress/$Max)*100)
@@ -196,4 +194,4 @@ $Global:Passwords | Out-GridView
 $Global:ProblematicUsers | Export-Csv -Delimiter ";" -Path "problematic_users.csv"
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-LogFile "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"

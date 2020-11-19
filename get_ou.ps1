@@ -2,30 +2,28 @@ param (
     [Parameter(Mandatory=$True)][string]$OU
 )
 
-#Ecrit des fichiers de log
-$LogsDirectory="C:\AdministrationLogs\"
-if(!(Test-Path -Path $LogsDirectory )){
-    New-Item -ItemType directory -Path $LogsDirectory
+#Vérifie l'enregistrement de la source de log
+if (-not [system.diagnostics.eventlog]::SourceExists("GetOU")){
+    [system.diagnostics.EventLog]::CreateEventSource("GetOU", "Application")
 }
-function Write-LogFile($Content,$Type){
-    if ($Type -eq "Daily"){
-        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append $LogsDirectory"daily_$(Get-Date -Format "ddMMyy").log"
-    }
-    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> $LogsDirectory"script_GetOU.log"
+function Write-Log($Content){
+    Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content"
+    Write-EventLog -LogName Application -Source "GetOU" -Message $Content -EventId 666
 }
+
 $Target = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"
 if (-not $Target) {
     Write-Host ("L'Unite d'Organisation $OU n'existe pas")
     Exit
 }
-Write-LogFile "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
 
 #Récupère tous les utilisateurs de cette UO
-Write-LogFile "Recherche des utilisateurs de l'Unite d'organisation $OU"
+Write-Log "Recherche des utilisateurs de l'Unite d'organisation $OU"
 $Result=Get-ADUser -Filter * -SearchBase ($Target)
 
 #Crée le fichier de listing de l'UO et affiche dans une fenêtre
 $Result | Export-Csv -Delimiter ";" -Path "userlist_$($OU -replace ' ','').csv"
 $Result | Out-GridView
 
-Write-LogFile "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
