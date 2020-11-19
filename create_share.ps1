@@ -44,6 +44,20 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     #Permissions RW Direction
     Add-FolderPermission $DirectionRWSID $DirPath "Read,Modify" "Allow"
 
+
+    $Responsables = Get-ADGroup -Filter "Name -Eq `"GG_$Name`_Responsable`"" | Get-ADGroupMember | Get-ADUser | ForEach-Object { "$($_.GivenName) $($_.Surname)" } -join ", "
+    
+    $Action80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 80%." -RunLimitInterval 180
+    $Treshold80 = New-FsrmQuotaTreshold -Percentage 80 -Action $Action80
+    $Action90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+    $Treshold90 = New-FsrmQuotaTreshold -Percentage 90 -Action $Action90
+    $Action100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+    $Treshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $Action100
+    $Tresholds = $Treshold80, $Treshold90, $Treshold100
+    New-FsrmQuotaTemplate "Quota $Name" 500MB -Treshold $Tresholds
+    New-FsrmQuota -Path $DirPath -Template "Quota $Name" 
+
+
     $InnerOUs = Get-ADOrganizationalUnit -Filter * -SearchBase "OU=$Name,$DomainPath"  -SearchScope 1
 
     #On itère sur les OU des sous-départements
@@ -53,6 +67,17 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
         New-Item -Path $DirPath -Name $InnerName -ItemType "Directory"
         Write-LogFile "Creation du dossier $Name/$InnerName"
         Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$InnerName`_RW`"").SID "$DirPath\$InnerName" "Read,Modify" "Allow"
+
+
+            $InnerAction80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 80%." -RunLimitInterval 180
+            $InnerTreshold80 = New-FsrmQuotaTreshold -Percentage 80 -Action $InnerAction80
+            $InnerAction90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+            $InnerTreshold90 = New-FsrmQuotaTreshold -Percentage 90 -Action $InnerAction90
+            $InnerAction100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+            $InnerTreshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $InnerAction100
+            $InnerTresholds = $InnerTreshold80, $InnerTreshold90, $InnerTreshold100
+            New-FsrmQuotaTemplate "Quota $InnerName" 100MB -Treshold $InnerTresholds
+            New-FsrmQuota -Path "$DirPath\$InnerName" -Template "Quota $InnerName" 
     }
 }
 
