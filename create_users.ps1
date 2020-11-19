@@ -3,6 +3,12 @@
     [switch]$Accept
 )
 
+#Ecrit des fichiers de log
+$LogsDirectory="C:\AdministrationLogs\"
+if(!(Test-Path -Path $LogsDirectory )){
+    New-Item -ItemType directory -Path $LogsDirectory
+}
+
 $Symbols = "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 
 $Global:Passwords = @()
@@ -11,11 +17,6 @@ $Global:ProblematicUsers = @()
 #Remplace les diacritiques par des caractères ASCII
 function Remove-NonLatinCharacters($String) {
     Return $String.Normalize("FormD") -replace '\p{M}', ''
-}
-#Ecrit des fichiers de log
-$LogsDirectory="C:\AdministrationLogs\"
-if(!(Test-Path -Path $LogsDirectory )){
-    New-Item -ItemType directory -Path $LogsDirectory
 }
 function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
