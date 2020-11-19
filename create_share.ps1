@@ -51,7 +51,7 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     $Action100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
     $Treshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $Action100
     $Tresholds = $Treshold80, $Treshold90, $Treshold100
-    New-FsrmQuotaTemplate "Quota $Name" 500MB -Treshold $Tresholds
+    New-FsrmQuotaTemplate "Quota $Name" -Size 500MB -Treshold $Tresholds
     New-FsrmQuota -Path $DirPath -Template "Quota $Name" 
 
 
@@ -73,7 +73,7 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
             $InnerAction100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
             $InnerTreshold100 = New-FsrmQuotaTreshold -Percentage 100 -Action $InnerAction100
             $InnerTresholds = $InnerTreshold80, $InnerTreshold90, $InnerTreshold100
-            New-FsrmQuotaTemplate "Quota $InnerName" 100MB -Treshold $InnerTresholds
+            New-FsrmQuotaTemplate "Quota $InnerName" -Size 100MB -Treshold $InnerTresholds
             New-FsrmQuota -Path "$DirPath\$InnerName" -Template "Quota $InnerName" 
     }
 }
