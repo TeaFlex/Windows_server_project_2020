@@ -9,6 +9,8 @@ Function Add-ShareDirectory($OUPath, $DirectoryPath) {
 #>
 
 
+$GroupPrefix = (Get-ADDomain).NetBIOSName
+
 New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
 #Add-ShareDirectory (Get-ADDomain).DistinguishedName "C:\Share"
 
@@ -19,7 +21,13 @@ Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)'
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     $DirPath = "C:\Share\$Name"
 
-    #$Rule = New-Object System.Security.AccessControl.FileSystemAccessRule()
+
+    $Acl = Get-Acl $DirPath
+    $Perm = "$GroupPrefix\GG_$Name`_R", "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
+    $Rule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Perm
+    $Acl.SetAccessRule($Rule)
+    $Acl | Set-Acl -Path $DirPath
+
     $InnerOUs = Get-ADOrganizationalUnit -Filter * -SearchBase "OU=$($_.Name),$DomainPath"  -SearchScope 1
 
     $InnerOUs | ForEach-Object {
