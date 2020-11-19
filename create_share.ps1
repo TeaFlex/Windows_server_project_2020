@@ -21,9 +21,9 @@ Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)'
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     $DirPath = "C:\Share\$Name"
 
-
+    $GroupSID = (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID
     $Acl = Get-Acl $DirPath
-    $Perm = "$GroupPrefix\GG_$Name`_R", "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
+    $Perm = $GroupSID, "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
     $Rule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Perm
     $Acl.SetAccessRule($Rule)
     $Acl | Set-Acl -Path $DirPath
