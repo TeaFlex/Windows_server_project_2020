@@ -13,7 +13,7 @@ New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
 
 $DomainPath = (Get-ADDomain).DistinguishedName
 
-Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
+Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)"' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
     $Name = $_.Name
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     $DirPath = "C:\Share\$Name"
