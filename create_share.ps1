@@ -17,7 +17,7 @@ Function Add-FolderPermission($GroupSID, $DirPath, $PermissionType, $PermissionV
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
 
 New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
 New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
@@ -56,4 +56,4 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
 Add-FolderPermission $DirectionRWSID "C:\Share\Commun" "Read,Modify" "Allow"
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)" "Daily"
+Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"

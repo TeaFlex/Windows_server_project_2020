@@ -181,7 +181,7 @@ $Users | ForEach-Object {
         Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
     }
     Catch {
-        Write-Log "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)" "Daily"
+        Write-Log "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)"
     }
     $Progress++
     $Display = [math]::floor(($Progress/$Max)*100)
