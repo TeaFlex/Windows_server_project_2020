@@ -15,7 +15,7 @@ function Remove-NonLatinCharacters($String) {
 #Ecrit des fichiers de log
 function Write-LogFile($Content,$Type){
     if ($Type -eq "Daily"){
-        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append "$(Get-Date -Format "ddMMyy").log"
+        Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" | Tee-Object -Append "log_$(Get-Date -Format "ddMMyy").log"
     }
     Write-Output "$(Get-Date -Format "HH:mm:ss")`t$Content" >> "log_CreateUsers.log"
 }
