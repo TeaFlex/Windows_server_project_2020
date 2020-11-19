@@ -1,13 +1,10 @@
-<#
-Function Add-ShareDirectory($OUPath, $DirectoryPath) {
-    Get-ADOrganizationalUnit -Filter 'Name -NotLike "Domain Controllers"' -SearchBase $Path -SearchScope 1 | ForEach-Object {
-        $Name = $_.Name
-        New-Item -Path $DirectoryPath -Name $Name -ItemType "Directory"
-        Add-ShareDirectory("OU=$Name,$OUPath", "$DirectoryPath\$Name")
-    }
+Function Add-FolderPermission($GroupSID, $DirPath, $PermissionType, $PermissionValue) {
+    $Acl = Get-Acl $DirPath
+    $Perm = $GroupSID, $PermissionType, "ContainerInherit,ObjectInherit", "None", $PermissionValue
+    $Rule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Perm
+    $Acl.SetAccessRule($Rule)
+    $Acl | Set-Acl -Path $DirPath
 }
-#>
-
 
 $GroupPrefix = (Get-ADDomain).NetBIOSName
 
@@ -22,12 +19,8 @@ Get-ADOrganizationalUnit -Filter 'Name -NotLike "(Domain Controllers)|(Groupes)'
     $DirPath = "C:\Share\$Name"
 
     $GroupSID = (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID
-    $Acl = Get-Acl $DirPath
-    $Perm = $GroupSID, "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
-    $Rule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Perm
-    $Acl.SetAccessRule($Rule)
-    $Acl | Set-Acl -Path $DirPath
-
+    Add-FolderPermission $GroupSID $DirPath "Read" "Allow"
+    
     $InnerOUs = Get-ADOrganizationalUnit -Filter * -SearchBase "OU=$($_.Name),$DomainPath"  -SearchScope 1
 
     $InnerOUs | ForEach-Object {
