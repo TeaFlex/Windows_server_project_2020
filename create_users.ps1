@@ -1,4 +1,4 @@
-param (
+﻿param (
     [Parameter(Mandatory=$True)][string]$CSVPath,
     [switch]$Accept
 )
