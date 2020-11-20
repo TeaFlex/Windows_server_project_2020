@@ -66,11 +66,11 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
         Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$InnerName`_RW`"").SID "$DirPath\$InnerName" "Read,Modify" "Allow"
 
 
-            $InnerAction80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 80%." -RunLimitInterval 180
+            $InnerAction80 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du sous-département $InnerName rempli à 80%." -RunLimitInterval 180
             $InnerThreshold80 = New-FsrmQuotaThreshold -Percentage 80 -Action $InnerAction80
-            $InnerAction90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $InnerName rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+            $InnerAction90 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du sous-département $InnerName rempli à 90%. Contacter les responsables : $Responsables." -RunLimitInterval 180
             $InnerThreshold90 = New-FsrmQuotaThreshold -Percentage 90 -Action $InnerAction90
-            $InnerAction100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
+            $InnerAction100 = New-FsrmAction -Type "Event" -EventType "Information" -Body "Stockage du sous-département $Name rempli à 100%. Contacter les responsables : $Responsables." -RunLimitInterval 180
             $InnerThreshold100 = New-FsrmQuotaThreshold -Percentage 100 -Action $InnerAction100
             $InnerThresholds = $InnerThreshold80, $InnerThreshold90, $InnerThreshold100
             New-FsrmQuotaTemplate "Quota $InnerName" -Size 100MB -Threshold $InnerThresholds
