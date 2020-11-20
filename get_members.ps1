@@ -1,4 +1,4 @@
-param (
+﻿param (
     [Parameter(Mandatory=$True)][string]$OU
 )
 
@@ -13,10 +13,10 @@ function Write-Log($Content){
 
 $Target = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"
 if (-not $Target) {
-    Write-Host ("L'Unite d'Organisation $OU n'existe pas")
+    Write-Host ("L'Unité d'Organisation $OU n'existe pas")
     Exit
 }
-Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Début de l'exécution du script $($MyInvocation.MyCommand.Name)"
 
 #Récupère tous les utilisateurs de cette UO
 Write-Log "Recherche des utilisateurs de l'Unite d'organisation $OU"
@@ -26,4 +26,4 @@ $Result=Get-ADUser -Filter * -SearchBase ($Target)
 $Result | Export-Csv -Delimiter ";" -Path "userlist_$($OU -replace ' ','').csv"
 $Result | Out-GridView
 
-Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Fin de l'exécution du script $($MyInvocation.MyCommand.Name)"

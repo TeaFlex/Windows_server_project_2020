@@ -145,7 +145,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -OfficePhone $OfficePhone `
         -Office $Office `
         -Path $Path
-    Write-Log ("Ajout de l'utilisateur $UserPrincipalName du departement $Department")
+    Write-Log ("Ajout de l'utilisateur $UserPrincipalName du département $Department")
 
     #On ajoute l'utilisateur au GG de son OU
     Add-ADGroupMember -Identity "GG_$($OU[0])" -Members "CN=$UserPrincipalName,$Path"
@@ -158,7 +158,7 @@ $Users = Import-Csv -Delimiter ";" -Path $CSVPath -Encoding "UTF8"
 #Demande de confirmation avant d'ajouter les utilisateurs via une MessageBox
 If (-Not ($Accept.IsPresent)) {
     Add-Type -AssemblyName PresentationFramework
-    $mbres = [System.Windows.MessageBox]::Show("Etes vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
+    $mbres = [System.Windows.MessageBox]::Show("Etes-vous certain de vouloir ajouter $($Users.Length) utilisateurs ?", "Confirmation", "YesNo");
     #Si on clique sur Non
     If ($mbres -Eq "No") {
         Write-Host ("Annulation de l'importation")
@@ -167,7 +167,7 @@ If (-Not ($Accept.IsPresent)) {
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Début de l'exécution du script $($MyInvocation.MyCommand.Name)"
 
 $Max = $Users.Length
 $Progress = 0
@@ -181,11 +181,11 @@ $Users | ForEach-Object {
         Add-User $_."Nom" $_."Prénom" $_."Description" $_."Département" $_."N° Interne" $_."Bureau"
     }
     Catch {
-        Write-Log "Erreur lors de l'execution du script: $($_.ScriptStackTrace)`n`t$($_)"
+        Write-Log "Erreur lors de l'exécution du script: $($_.ScriptStackTrace)`n`t$($_)"
     }
     $Progress++
     $Display = [math]::floor(($Progress/$Max)*100)
-    Write-Progress -Activity "Execution du script en cours..." -Status "$Display% Complété: " -PercentComplete $Display; 
+    Write-Progress -Activity "Exécution du script en cours..." -Status "$Display% Complété: " -PercentComplete $Display; 
 }
 
 $Global:Passwords | Export-Csv -Delimiter ";" -Path "passwords.csv"
@@ -194,4 +194,4 @@ $Global:Passwords | Out-GridView
 $Global:ProblematicUsers | Export-Csv -Delimiter ";" -Path "problematic_users.csv"
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Fin de l'exécution du script $($MyInvocation.MyCommand.Name)"

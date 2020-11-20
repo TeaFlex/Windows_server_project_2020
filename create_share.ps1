@@ -27,7 +27,7 @@ Function Remove-NTFSInheritance($Path) {
 }
 
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
-Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Début de l'exécution du script $($MyInvocation.MyCommand.Name)"
 
 New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
 New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
@@ -47,7 +47,7 @@ $DirectionRWSID = (Get-ADGroup -Filter "Name -Eq `"GL_Direction_RW`"").SID
 Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne "Groupes")' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
     $Name = $_.Name
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
-    Write-Log "Creation du dossier $Name"
+    Write-Log "Création du dossier $Name"
     $DirPath = "C:\Share\$Name"
 
     Remove-NTFSInheritance $DirPath
@@ -82,7 +82,7 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
         $InnerName = $_.Name
 
         New-Item -Path $DirPath -Name $InnerName -ItemType "Directory"
-        Write-Log "Creation du dossier $Name/$InnerName"
+        Write-Log "Création du dossier $Name/$InnerName"
         Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$InnerName`_RW`"").SID "$DirPath\$InnerName" "Read,Modify" "Allow"
 
 
@@ -104,4 +104,4 @@ New-FsrmQuotaTemplate "Quota Commun" -Size 500MB
 New-FsrmQuota -Path "C:\Share\Commun" -Template "Quota Commun" 
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
-Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"
+Write-Log "Fin de l'exécution du script $($MyInvocation.MyCommand.Name)"
