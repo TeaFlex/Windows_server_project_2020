@@ -137,7 +137,7 @@ function Add-User($LastName, $FirstName, $Description, $Department, $OfficePhone
         -Enabled $True `
         -Name $UserPrincipalName `
         -DisplayName "$FirstName $LastName" `
-        -UserPrincipalName "$UserPrincipalName@$((Get-ADDomain).DistinguishedName)" `
+        -UserPrincipalName "$UserPrincipalName@$((Get-ADDomain).Forest)" `
         -Surname $LastName `
         -GivenName $FirstName `
         -Description $Description `
