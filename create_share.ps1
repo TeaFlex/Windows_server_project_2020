@@ -16,11 +16,29 @@ Function Add-FolderPermission($GroupSID, $DirPath, $PermissionType, $PermissionV
     $Acl | Set-Acl -Path $DirPath
 }
 
+Function Remove-NTFSInheritance($Path) {
+    $Acl = Get-Acl $Path
+    $Acl.SetAccessRuleProtection($True, $True)
+    $Acl.Access | ForEach-Item {$Acl.RemoveAccessRule($_)}
+    $PermAdmin = "BUILTIN\Administrateurs", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow"
+    $RuleAdmin = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $PermAdmin
+    $Acl.SetAccessRule($RuleAdmin)
+    $Acl | Set-Acl -Path $Path
+}
+
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
 Write-Log "Debut de l'execution du script $($MyInvocation.MyCommand.Name)"
 
 New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
 New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
+
+#On enlève l'héritage NTFS au dossier Share
+Remove-NTFSInheritance "C:\Share"
+$Acl = Get-Acl "C:\Share"
+$PermUser = "BUILTIN\Utilisateurs", "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
+$RuleUser = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Permuser
+$Acl.SetAccessRule($RuleUser)
+$Acl | Set-Acl -Path "C:\Share"
 
 $DomainPath = (Get-ADDomain).DistinguishedName
 $DirectionRWSID = (Get-ADGroup -Filter "Name -Eq `"GL_Direction_RW`"").SID
@@ -31,6 +49,8 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
     Write-Log "Creation du dossier $Name"
     $DirPath = "C:\Share\$Name"
+
+    Remove-NTFSInheritance $DirPath
 
     #Permissions membres de l'OU
     Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID $DirPath "Read" "Allow"
