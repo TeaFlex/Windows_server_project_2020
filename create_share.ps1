@@ -1,4 +1,4 @@
-#Vérifie l'enregistrement de la source de log
+﻿#Vérifie l'enregistrement de la source de log
 if (-not [system.diagnostics.eventlog]::SourceExists("CreateShare")){
     [system.diagnostics.EventLog]::CreateEventSource("CreateShare", "Application")
 }
