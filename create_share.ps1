@@ -18,8 +18,8 @@ Function Add-FolderPermission($GroupSID, $DirPath, $PermissionType, $PermissionV
 
 Function Remove-NTFSInheritance($Path) {
     $Acl = Get-Acl $Path
-    $Acl.SetAccessRuleProtection($True, $True)
-    $Acl.Access | ForEach-Item {$Acl.RemoveAccessRule($_)}
+    $Acl.SetAccessRuleProtection($True, $False)
+    $Acl.Access | ForEach-Object {$Acl.RemoveAccessRule($_)}
     $PermAdmin = "BUILTIN\Administrateurs", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow"
     $RuleAdmin = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $PermAdmin
     $Acl.SetAccessRule($RuleAdmin)
@@ -35,7 +35,7 @@ New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
 #On enlève l'héritage NTFS au dossier Share
 Remove-NTFSInheritance "C:\Share"
 $Acl = Get-Acl "C:\Share"
-$PermUser = "BUILTIN\Utilisateurs", "Read", "ContainerInherit,ObjectInherit", "None", "Allow"
+$PermUser = "BUILTIN\Utilisateurs du domaine", "Read", "None", "None", "Allow"
 $RuleUser = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Permuser
 $Acl.SetAccessRule($RuleUser)
 $Acl | Set-Acl -Path "C:\Share"
