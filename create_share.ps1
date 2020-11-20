@@ -80,5 +80,8 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
 
 Add-FolderPermission $DirectionRWSID "C:\Share\Commun" "Read,Modify" "Allow"
 
+New-FsrmQuotaTemplate "Quota Commun" -Size 500MB
+New-FsrmQuota -Path "C:\Share\Commun" -Template "Quota Commun" 
+
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
 Write-Log "Fin de l'execution du script $($MyInvocation.MyCommand.Name)"
