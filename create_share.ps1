@@ -29,16 +29,16 @@ Function Remove-NTFSInheritance($Path) {
 #Ecrit dans le fichier de log journalier le début de l'exécution du script
 Write-Log "Début de l'exécution du script $($MyInvocation.MyCommand.Name)"
 
-New-Item -Path "C:\" -Name "Share" -ItemType "Directory"
-New-Item -Path "C:\Share" -Name "Commun" -ItemType "Directory"
+New-Item -Path "F:\" -Name "Share" -ItemType "Directory"
+New-Item -Path "F:\Share" -Name "Commun" -ItemType "Directory"
 
 #On enlève l'héritage NTFS au dossier Share
-Remove-NTFSInheritance "C:\Share"
-$Acl = Get-Acl "C:\Share"
+Remove-NTFSInheritance "F:\Share"
+$Acl = Get-Acl "F:\Share"
 $PermUser = "BUILTIN\Utilisateurs du domaine", "Read", "None", "None", "Allow"
 $RuleUser = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $Permuser
 $Acl.SetAccessRule($RuleUser)
-$Acl | Set-Acl -Path "C:\Share"
+$Acl | Set-Acl -Path "F:\Share"
 
 $DomainPath = (Get-ADDomain).DistinguishedName
 $DirectionRWSID = (Get-ADGroup -Filter "Name -Eq `"GL_Direction_RW`"").SID
@@ -46,18 +46,18 @@ $DirectionRWSID = (Get-ADGroup -Filter "Name -Eq `"GL_Direction_RW`"").SID
 #On itère sur les OU des départements
 Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne "Groupes")' -SearchBase $DomainPath -SearchScope 1 | ForEach-Object {
     $Name = $_.Name
-    New-Item -Path "C:\Share" -Name $Name -ItemType "Directory"
+    New-Item -Path "F:\Share" -Name $Name -ItemType "Directory"
     Write-Log "Création du dossier $Name"
-    $DirPath = "C:\Share\$Name"
+    $DirPath = "F:\Share\$Name"
 
     Remove-NTFSInheritance $DirPath
 
     #Permissions membres de l'OU
     Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID $DirPath "Read" "Allow"
-    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID "C:\Share\Commun" "Read" "Allow"
+    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_R`"").SID "F:\Share\Commun" "Read" "Allow"
     #Permissions responsables de l'OU
     Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_Responsable_RW`"").SID $DirPath "Read,Modify" "Allow"
-    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_Responsable_RW`"").SID "C:\Share\Commun" "Read,Modify" "Allow"
+    Add-FolderPermission (Get-ADGroup -Filter "Name -Eq `"GL_$Name`_Responsable_RW`"").SID "F:\Share\Commun" "Read,Modify" "Allow"
     #Permissions RW Direction
     Add-FolderPermission $DirectionRWSID $DirPath "Read,Modify" "Allow"
 
@@ -98,10 +98,10 @@ Get-ADOrganizationalUnit -Filter '(Name -Ne "Domain Controllers") -And (Name -Ne
     }
 }
 
-Add-FolderPermission $DirectionRWSID "C:\Share\Commun" "Read,Modify" "Allow"
+Add-FolderPermission $DirectionRWSID "F:\Share\Commun" "Read,Modify" "Allow"
 
 New-FsrmQuotaTemplate "Quota Commun" -Size 500MB
-New-FsrmQuota -Path "C:\Share\Commun" -Template "Quota Commun" 
+New-FsrmQuota -Path "F:\Share\Commun" -Template "Quota Commun" 
 
 #Ecrit dans le fichier de log journalier la fin de l'exécution du script
 Write-Log "Fin de l'exécution du script $($MyInvocation.MyCommand.Name)"
